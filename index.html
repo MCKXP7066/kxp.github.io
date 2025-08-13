@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全员逃走中热搜榜</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #e1306c 0%, #fd1d1d 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
+        .logo {
+            font-size: 28px;
+            margin-right: 15px;
+            animation: pulse 2s infinite;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .update-time {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .hot-search-list {
+            padding: 20px;
+        }
+        
+        .hot-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 10px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .hot-item:hover {
+            background-color: #f9f9f9;
+            transform: translateX(5px);
+        }
+        
+        .rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .rank-1, .rank-2, .rank-3 {
+            color: white;
+        }
+        
+        .rank-1 {
+            background: linear-gradient(135deg, #ff6034 0%, #ee0a24 100%);
+        }
+        
+        .rank-2 {
+            background: linear-gradient(135deg, #ff930f 0%, #ff2e63 100%);
+        }
+        
+        .rank-3 {
+            background: linear-gradient(135deg, #5b86e5 0%, #36d1dc 100%);
+        }
+        
+        .content {
+            flex: 1;
+        }
+        
+        .topic {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .stats {
+            display: flex;
+            color: #999;
+            font-size: 13px;
+        }
+        
+        .hot-tag {
+            margin-left: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .hot-tag.hot {
+            background-color: #ffeeee;
+            color: #ff2e63;
+        }
+        
+        .hot-tag.boom {
+            background-color: #ffecec;
+            color: #ff2e2e;
+        }
+        
+        .hot-tag.new {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .actions {
+            padding: 20px;
+            background: #f9f9f9;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .action-btn {
+            flex: 1;
+            margin: 0 10px;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .add-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .delete-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa8a8 100%);
+            color: white;
+        }
+        
+        .action-btn i {
+            margin-right: 8px;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .confirm-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .cancel-btn {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1001;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes newItem {
+            0% { background-color: rgba(135, 206, 250, 0.5); }
+            100% { background-color: transparent; }
+        }
+        
+        .new-item {
+            animation: newItem 2s ease;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: #999;
+            font-size: 12px;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fab fa-weibo"></i>
+            </div>
+            <div class="title">全员逃走中热搜榜</div>
+            <div class="update-time">更新于 <span id="current-time"></span></div>
+        </div>
+        
+        <div class="hot-search-list" id="hot-search-list">
+            <!-- 热搜条目将通过JS动态生成 -->
+        </div>
+        
+        <div class="actions">
+            <button class="action-btn add-btn" id="add-btn">
+                <i class="fas fa-plus"></i> 添加热搜
+            </button>
+            <button class="action-btn delete-btn" id="delete-btn">
+                <i class="fas fa-trash"></i> 删除热搜
+            </button>
+        </div>
+        
+        <div class="footer">
+            热搜榜每分钟更新一次 • 服务协议 • 隐私政策 • 举报中心
+        </div>
+    </div>
+    
+    <!-- 密码输入弹窗 -->
+    <div class="password-modal" id="password-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title">请输入管理员密码</div>
+            <input type="password" class="password-input" id="password-input" placeholder="请输入密码">
+            <div class="modal-actions">
+                <button class="modal-btn confirm-btn" id="confirm-btn">确认</button>
+                <button class="modal-btn cancel-btn" id="cancel-btn">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 提示信息 -->
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // 初始热搜数据
+        const initialHotTopics = [
+            { topic: "全员逃走中第10期开播", hotValue: 4582321, tag: "hot" },
+            { topic: "白队全员逃脱成功", hotValue: 3876214, tag: "boom" },
+            { topic: "猎人新增特殊能力", hotValue: 3245876, tag: "boom" },
+            { topic: "本期最高悬赏金额破纪录", hotValue: 2987543, tag: "hot" },
+            { topic: "新逃亡者加入引热议", hotValue: 2456789, tag: "new" },
+            { topic: "逃亡地图隐藏彩蛋曝光", hotValue: 1987654, tag: "hot" },
+            { topic: "追捕名场面TOP10", hotValue: 1765432, tag: null },
+            { topic: "下期预告神秘嘉宾", hotValue: 1654321, tag: "new" },
+            { topic: "猎人服装设计大赛", hotValue: 1543210, tag: null },
+            { topic: "全员逃走中手游上线", hotValue: 1432109, tag: "hot" },
+            { topic: "经典逃亡路线分析", hotValue: 1321098, tag: null },
+            { topic: "猎人训练营花絮", hotValue: 1210987, tag: null },
+            { topic: "最受欢迎逃亡者投票", hotValue: 1109876, tag: "new" },
+            { topic: "幕后制作团队专访", hotValue: 1000000, tag: null }
+        ];
+        
+        // 存储当前热搜数据
+        let hotTopics = [...initialHotTopics];
+        let currentAction = null; // 当前操作类型: 'add' 或 'delete'
+        
+        // 更新页面时间
+        function updateTime() {
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            document.getElementById('current-time').textContent = timeStr;
+        }
+        
+        // 显示Toast提示
+        function showToast(message, duration = 2000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+        
+        // 渲染热搜列表
+        function renderHotSearchList() {
+            const listContainer = document.getElementById('hot-search-list');
+            listContainer.innerHTML = '';
+            
+            hotTopics.forEach((topic, index) => {
+                const item = document.createElement('div');
+                item.className = 'hot-item';
+                
+                // 添加新项目动画类
+                if (topic.isNew) {
+                    item.classList.add('new-item');
+                    // 移除动画类标记，避免下次渲染时再次添加动画
+                    delete topic.isNew;
+                }
+                
+                item.innerHTML = `
+                    <div class="rank ${index < 3 ? 'rank-' + (index + 1) : ''}">${index + 1}</div>
+                    <div class="content">
+                        <div class="topic">${topic.topic}</div>
+                        <div class="stats">
+                            <span>${formatHotValue(topic.hotValue)}</span>
+                            ${topic.tag ? `<span class="hot-tag ${topic.tag}">${getTagText(topic.tag)}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                listContainer.appendChild(item);
+            });
+        }
+        
+        // 格式化热度值
+        function formatHotValue(value) {
+            if (value >= 1000000) {
+                return (value / 10000).toFixed(1) + '万';
+            }
+            return value;
+        }
+        
+        // 获取标签文本
+        function getTagText(tag) {
+            switch(tag) {
+                case 'hot': return '热';
+                case 'boom': return '爆';
+                case 'new': return '新';
+                default: return '';
+            }
+        }
+        
+        // 打开密码输入弹窗
+        function openPasswordModal(action) {
+            currentAction = action;
+            const modal = document.getElementById('password-modal');
+            const title = document.getElementById('modal-title');
+            
+            if (action === 'add') {
+                title.textContent = '添加热搜 - 请输入管理员密码';
+            } else {
+                title.textContent = '删除热搜 - 请输入管理员密码';
+            }
+            
+            modal.style.display = 'flex';
+            document.getElementById('password-input').value = '';
+            document.getElementById('password-input').focus();
+        }
+        
+        // 关闭密码输入弹窗
+        function closePasswordModal() {
+            document.getElementById('password-modal').style.display = 'none';
+        }
+        
+        // 验证密码
+        function validatePassword() {
+            const password = document.getElementById('password-input').value;
+            const correctPassword = '090615';
+            
+            if (password === correctPassword) {
+                closePasswordModal();
+                
+                if (currentAction === 'add') {
+                    addHotTopic();
+                } else {
+                    deleteHotTopic();
+                }
+                
+                return true;
+            } else {
+                showToast('密码错误，请重新输入', 2000);
+                document.getElementById('password-input').value = '';
+                document.getElementById('password-input').focus();
+                return false;
+            }
+        }
+        
+        // 添加热搜
+        function addHotTopic() {
+            const newTopic = prompt('请输入要添加的热搜内容：');
+            
+            if (newTopic) {
+                const hotValue = Math.floor(Math.random() * 2000000) + 1000000;
+                const tags = ['hot', 'boom', 'new', null];
+                const randomTag = tags[Math.floor(Math.random() * tags.length)];
+                
+                // 添加到第二位（微博通常新热搜会出现在较前位置）
+                hotTopics.splice(1, 0, {
+                    topic: newTopic,
+                    hotValue: hotValue,
+                    tag: randomTag,
+                    isNew: true // 标记为新项目，用于添加动画
+                });
+                
+                // 如果超过20条，移除最后一条
+                if (hotTopics.length > 20) {
+                    hotTopics.pop();
+                }
+                
+                renderHotSearchList();
+                showToast('热搜添加成功！', 2000);
+            }
+        }
+        
+        // 删除热搜
+        function deleteHotTopic() {
+            const indexStr = prompt('请输入要删除的热搜序号（1-' + hotTopics.length + '）：');
+            const index = parseInt(indexStr) - 1;
+            
+            if (index >= 0 && index < hotTopics.length) {
+                const deletedTopic = hotTopics[index].topic;
+                hotTopics.splice(index, 1);
+                renderHotSearchList();
+                showToast(`已删除热搜: ${deletedTopic}`, 2000);
+            } else if (indexStr !== null) {
+                showToast('无效的热搜序号', 2000);
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化时间
+            updateTime();
+            setInterval(updateTime, 60000);
+            
+            // 渲染初始热搜列表
+            renderHotSearchList();
+            
+            // 添加按钮事件
+            document.getElementById('add-btn').addEventListener('click', () => {
+                openPasswordModal('add');
+            });
+            
+            // 删除按钮事件
+            document.getElementById('delete-btn').addEventListener('click', () => {
+                openPasswordModal('delete');
+            });
+            
+            // 密码弹窗按钮事件
+            document.getElementById('confirm-btn').addEventListener('click', validatePassword);
+            document.getElementById('cancel-btn').addEventListener('click', closePasswordModal);
+            
+            // 按Enter键确认密码
+            document.getElementById('password-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    validatePassword();
+                }
+            });
+            
+            // 点击弹窗外部关闭
+            document.getElementById('password-modal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('password-modal')) {
+                    closePasswordModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
